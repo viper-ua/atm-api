@@ -8,6 +8,7 @@ module ATMOne
         requires :stack, type: Hash, desc: 'Package to load into ATM'
       end
       post do
+        status 200
         @@atm ||= ATM.new 
         @@atm.load(params[:stack].to_hash)
       end
@@ -19,6 +20,7 @@ module ATMOne
         requires :amount, type: Integer, desc: 'Withdrawal amount'
       end
       post do
+        status 200
         @@atm ||=ATM.new
         @@atm.withdraw(params[:amount])
       end
