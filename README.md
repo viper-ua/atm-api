@@ -1,4 +1,9 @@
-# Backend JSON API for simple api-frontend project
+# RESTful API built with Grape for ATM test project
+
+## Environment:
+- Grape 1.0.1
+- Rails 5.1.4
+- Ruby 2.4.2p198
 
 ## To run this app in development mode:
 - clone repository to desired place
@@ -16,7 +21,7 @@ rails s
 ```
 >Server should start at tcp://0.0.0.0:3000
 
-## API endpoints
+## API endpoints:
 - check current ATM load
 ```
 GET /check
