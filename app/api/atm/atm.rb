@@ -9,7 +9,7 @@ class ATM
     errors = {}
     load_stack.each do |k, v|
       if @stack.keys.include?(k.to_i)
-        @stack[k.to_i] += v
+        @stack[k.to_i] += v.to_i
       else
         errors.store(k, 'Invalid note')
       end
@@ -30,7 +30,6 @@ class ATM
   end
 
   def withdrawal_queue(amount, notes)
-    #puts "Need:#{amount.to_s} Have:#{notes.sum} => #{notes.to_s}"
     return [] if notes.sum < amount
       notes.each_with_index do |note, i|
         amount_ = amount - note

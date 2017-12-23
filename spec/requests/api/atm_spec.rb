@@ -14,16 +14,32 @@ RSpec.describe "/api/v1", type: :request do
   end
 
   describe "POST /load" do
-    it "loads notes to ATM" do
-      post '/api/v1/load', params: '{ "stack": { "1": 2, "2": 5, "10": 7, "25": 3, "50": 1 }}', headers: { "CONTENT_TYPE" => "application/json" }
-      expect(response).to have_http_status(200)
-      expect(parsed_response).to eq({ "stack" => { "1" => 2, "2" => 5, "5" => 0, "10" => 7, "25" => 3, "50" => 1 }, "status" => "OK" })
+    context 'valid params' do
+      it "loads notes to ATM" do
+        post '/api/v1/load', params: '{ "stack": { "1": 2, "2": 5, "10": 7, "25": 3, "50": 1 }}', headers: { "CONTENT_TYPE" => "application/json" }
+        expect(response).to have_http_status(200)
+        expect(parsed_response).to eq({ "stack" => { "1" => 2, "2" => 5, "5" => 0, "10" => 7, "25" => 3, "50" => 1 }, "status" => "OK" })
+      end
+
+      it "saves notes" do
+        post '/api/v1/load', params: '{ "stack": { "1": 2, "2": 5, "10": 7, "25": 3, "50": 1 }}', headers: { "CONTENT_TYPE" => "application/json" }
+        get '/api/v1/check'
+        expect(parsed_response).to eq({ "1" => 2, "2" => 5, "5" => 0, "10" => 7, "25" => 3, "50" => 1 })
+      end
     end
 
-    it "saves notes" do
-      post '/api/v1/load', params: '{ "stack": { "1": 2, "2": 5, "10": 7, "25": 3, "50": 1 }}', headers: { "CONTENT_TYPE" => "application/json" }
-      get '/api/v1/check'
-      expect(parsed_response).to eq({ "1" => 2, "2" => 5, "5" => 0, "10" => 7, "25" => 3, "50" => 1 })
+    context 'invalid params' do
+      it "handles amount of a string type" do
+        post '/api/v1/load', params: '{ "stack": { "1": "2" }}', headers: { "CONTENT_TYPE" => "application/json" }
+        expect(response).to have_http_status(200)
+        expect(parsed_response).to eq({ "stack" => {"1"=>2, "2"=>0, "5"=>0, "10"=>0, "25"=>0, "50"=>0}, "status" => "OK" })
+      end
+
+      it "handles stack of invalid type" do
+        post '/api/v1/load', params: '{ "stack": "INVALID" }', headers: { "CONTENT_TYPE" => "application/json" }
+        expect(response).to have_http_status(400)
+        expect(parsed_response).to eq({ "error" => "stack is invalid" })
+      end
     end
   end
 
@@ -49,7 +65,6 @@ RSpec.describe "/api/v1", type: :request do
         post '/api/v1/load', params: '{ "stack": { "1": 2, "2": 5, "10": 7, "25": 3, "50": 1 }}', headers: { "CONTENT_TYPE" => "application/json" }
         post '/api/v1/withdraw', params: { amount: 300 }
         expect(response).to have_http_status(200)
-        puts parsed_response
         expect(parsed_response).to eq("status" => "Not enough notes to withdraw")
       end
 
