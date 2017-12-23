@@ -19,24 +19,26 @@ class ATM
   end
 
   def withdraw(amount)
-    proposed_sum = 0
-    proposal = withdraw_from(amount, @stack)
-    proposal.each { |k, v| proposed_sum += k * v }
-    if proposed_sum == amount
-      @stack.merge!(proposal) { |_key, v1, v2| v1 - v2 }
-      return { status: 'OK', set: proposal }
-    end
-    { status: 'Not enough notes to withdraw', proposal: proposal }
+    notes_all = @stack.keys.sort { |x, y| y <=> x } \
+                      .inject([]) { |arr, k| arr + [k] * @stack[k] }
+    proposal = withdrawal_queue(amount, notes_all) \
+               .each_with_object(Hash.new(0)) { |v, hsh| hsh[v] += 1 }
+
+    return { status: 'Not enough notes to withdraw' } if proposal.empty?
+    @stack.merge!(proposal) { |_key, v1, v2| v1 - v2 }
+    { status: 'OK', set: proposal }
   end
 
-  def withdraw_from(amount, stack)
-    withdraw_queue = {}
-    return withdraw_queue if stack.empty?
-    note = stack.keys.max
-    can_get = stack[note].zero? ? 0 : [stack[note], amount / note].min
-    stack_ = stack.reject { |k, _v| k == note }
-    withdraw_queue.store(note, can_get) if can_get > 0
-    amount_ = amount - note * can_get
-    withdraw_queue.merge(withdraw_from(amount_, stack_))
+  def withdrawal_queue(amount, notes)
+    #puts "Need:#{amount.to_s} Have:#{notes.sum} => #{notes.to_s}"
+    return [] if notes.sum < amount
+      notes.each_with_index do |note, i|
+        amount_ = amount - note
+        return [note] if amount_.zero?
+        next if amount_ < 0
+        stack_ = notes.values_at(0...i, (i + 1)..-1)
+        notes_ = [note] + withdrawal_queue(amount_, stack_)
+        return notes_ if notes_.sum == amount
+      end
   end
 end

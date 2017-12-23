@@ -8,7 +8,7 @@ module ATMOne
       end
       post do
         status 200
-        @@atm ||= ATM.new 
+        @@atm ||= ATM.new
         @@atm.load(params[:stack].to_hash)
       end
     end
