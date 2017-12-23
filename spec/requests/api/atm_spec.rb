@@ -40,6 +40,12 @@ RSpec.describe "/api/v1", type: :request do
         expect(response).to have_http_status(400)
         expect(parsed_response).to eq({ "error" => "stack is invalid" })
       end
+
+      it "does not change stack when present invalid notes" do
+        post '/api/v1/load', params: '{ "stack": { "1": -2, "4": 3, "5": 1.5 }}', headers: { "CONTENT_TYPE" => "application/json" }
+        get '/api/v1/check'
+        expect(parsed_response).to eq({ "1" => 0, "2" => 0, "5" => 0, "10" => 0, "25" => 0, "50" => 0 })
+      end
     end
   end
 
