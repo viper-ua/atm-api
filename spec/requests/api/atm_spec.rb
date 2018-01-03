@@ -1,8 +1,9 @@
 require 'rails_helper'
+require 'redis'
 
 RSpec.describe "/api/v1", type: :request do
   before do
-    ATMOne::Data.class_variable_set(:@@atm, nil)
+    Redis.new.del("atm:stack")
   end
 
   describe "GET /check" do

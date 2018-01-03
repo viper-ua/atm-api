@@ -1,4 +1,4 @@
-require_relative 'atm'
+require_relative '../../logic/atm'
 module ATMOne
   class Data < Grape::API
     resource :load do
@@ -8,8 +8,7 @@ module ATMOne
       end
       post do
         status 200
-        @@atm ||= ATM.new
-        @@atm.load(params[:stack])
+        ATM.new.load(params[:stack])
       end
     end
 
@@ -20,16 +19,14 @@ module ATMOne
       end
       post do
         status 200
-        @@atm ||= ATM.new
-        @@atm.withdraw(params[:amount])
+        ATM.new.withdraw(params[:amount])
       end
     end
 
     resource :check do
       desc 'Check remaining notes, starts ATM if already not'
       get do
-        @@atm ||= ATM.new
-        @@atm.stack
+        ATM.new.stack
       end
     end
   end

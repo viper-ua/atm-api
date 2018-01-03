@@ -1,10 +1,15 @@
+require 'redis'
+
 class ATM
   attr_reader :stack
   NOTES = [1, 2, 5, 10, 25, 50].freeze
   NOTES_REVERSED = [50, 25, 10, 5, 2, 1].freeze
 
   def initialize
+    @redis = Redis.new
     @stack = { 1 => 0, 2 => 0, 5 => 0, 10 => 0, 25 => 0, 50 => 0 }
+    return unless (atm_stack = @redis.hgetall('atm:stack'))
+    load(atm_stack)
   end
 
   def load(load_stack = {})
@@ -17,6 +22,7 @@ class ATM
         errors.store(k, 'Invalid note')
       end
     end
+    @redis.mapped_hmset('atm:stack', @stack)
     return { stack: @stack, status: errors } unless errors.empty?
     { stack: @stack, status: 'OK' }
   end
@@ -28,6 +34,7 @@ class ATM
 
     return { status: 'Not enough notes to withdraw' } if proposal.empty?
     @stack.merge!(proposal) { |_key, v1, v2| v1 - v2 }
+    @redis.mapped_hmset('atm:stack', @stack)
     { status: 'OK', set: proposal }
   end
 
